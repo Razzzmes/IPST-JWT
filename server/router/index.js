@@ -18,6 +18,9 @@ router.post('/logout', userController.logout);
 router.get('/activate/:link', userController.activate);
 router.get('/refresh', userController.refresh);
 router.get('/users', authMiddleware, userController.getUsers);
-router.post('/changepassword', authMiddleware, userController.changepassword);
-
+router.post('/changepassword',
+	body('email').isEmail(),
+	body('password').matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[a-zA-Z\d@$.!%*#?&]/,), 
+	authMiddleware, userController.changepassword);
+router.get('/activateNewPassword/:link', userController.activateNewPassword);
 module.exports = router

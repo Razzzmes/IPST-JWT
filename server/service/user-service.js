@@ -84,12 +84,21 @@ class UserService{
 		if(isPassEquals){
 			throw ApiError.BadRequest('Пароли совпали')
 		}
-		user.password = await bcrypt.hash(password, 3);
+		const activationLink = user.activationLink
+		await mailService.sendPasswordChangeMail(email, `${process.env.API_URL}/api/activateNewPassword/${activationLink}`);
+		user.newPassword = await bcrypt.hash(password, 3);
 		await user.save();
-		return ('Пароль изменен')
-		
-		//await mailService.sendPasswordChangeMail(email, `${process.env.API_URL}/api/activate/${activationLink}`);
-	
+		return ('Для смены пароля требуется активация по почте')
+	}
+
+	async activateNewPassword(activationLink){
+		const user = await UserModel.findOne({activationLink});
+		if (!user){
+			throw ApiError.BadRequest('Неккоректная ссылка активации')
+		}
+		user.password = user.newPassword
+		user.newPassword = ''
+		await user.save();
 	}
 }
 
